@@ -46,8 +46,54 @@ def clean_static_data(df) -> pd.DataFrame():
     return df
 
 def get_player_data(player_id):
+    """ Fetches the players fixtures and History from the API
+
+    :param player_id : The unique identifier for a player 
+    returns a json object of the players data
+    """
     data = r.get("https://fantasy.premierleague.com/api/element-summary/{}".format(player_id)).json()
     return data
+
+def handle_player_history(df):
+    """ Takes in pandas dataframe player history and retreives useful stats 
+
+    :param df : a dataframe of a players history
+    returns useful stats about the players history we can use in our model
+    """
+    
+    
+
+    (average_points,average_minutes,avg_points_per_min,goals_scored_last_season,goals_conceded_last_season,assists_last_season,minutes_last_season,clean_sheets_last_season,
+    clean_sheets_last_season,total_points_last_season,ict_index_last_season,red_cards_last_season,yellow_cards_last_season,
+    starts_last_season,saves_last_season,penalties_saved_last_season,penalties_missed_last_season) = [0]*17
+
+    if df.shape[0] >0:
+        recent_histdf = df[df['season_name']>= '2020/21']
+        if recent_histdf.shape[0] > 2:
+            average_points = recent_histdf['total_points'].mean()
+            average_minutes = recent_histdf['minutes'].mean()
+            avg_points_per_min = average_points/average_minutes
+            
+        if "2022/23" in df.season_name.values:
+            goals_scored_last_season = df[df.season_name == "2022/23"]['goals_scored'].iloc[0]
+            goals_conceded_last_season = df[df.season_name == "2022/23"]['goals_conceded'].iloc[0]
+            assists_last_season = df[df.season_name == "2022/23"]['assists'].iloc[0]
+            minutes_last_season = df[df.season_name == "2022/23"]['minutes'].iloc[0]
+            clean_sheets_last_season = df[df.season_name == "2022/23"]['clean_sheets'].iloc[0]
+            total_points_last_season = df[df.season_name == "2022/23"]['total_points'].iloc[0]
+            ict_index_last_season = df[df.season_name == "2022/23"]['ict_index'].iloc[0]
+            total_points_last_season = df[df.season_name == "2022/23"]['total_points'].iloc[0]
+            red_cards_last_season = df[df.season_name == "2022/23"]['clean_sheets'].iloc[0]
+            yellow_cards_last_season = df[df.season_name == "2022/23"]['yellow_cards'].iloc[0]
+            starts_last_season = df[df.season_name == "2022/23"]['starts'].iloc[0]
+            saves_last_season = df[df.season_name == "2022/23"]['saves'].iloc[0]
+            penalties_saved_last_season = df[df.season_name == "2022/23"]['penalties_saved'].iloc[0]
+            penalties_missed_last_season = df[df.season_name == "2022/23"]['penalties_missed'].iloc[0]
+
+    return (average_points,average_minutes,avg_points_per_min,goals_scored_last_season,goals_conceded_last_season,assists_last_season,minutes_last_season,clean_sheets_last_season,
+    clean_sheets_last_season,total_points_last_season,ict_index_last_season,red_cards_last_season,yellow_cards_last_season,
+    starts_last_season,saves_last_season,penalties_saved_last_season,penalties_missed_last_season)
+
 
 def player_stats(player_id):
     """ Derives extra stats from a players history as well as upcoming fixtures
@@ -61,37 +107,14 @@ def player_stats(player_id):
     player_history = pd.DataFrame(data['history_past'])
 
 
-    team_fixture_score_mean_10 = fixture_data.head(10)['difficulty'].mean()
-    team_fixture_score_sum_10  = fixture_data.head(10)['difficulty'].sum()
-    team_fixture_score_mean = fixture_data['difficulty'].mean()
-    team_fixture_score_sum  = fixture_data['difficulty'].sum()
-
-    (goals_scored_last_season,goals_conceded_last_season,assists_last_season,minutes_last_season,clean_sheets_last_season,
+    (average_points,average_minutes,avg_points_per_min,goals_scored_last_season,goals_conceded_last_season,assists_last_season,minutes_last_season,clean_sheets_last_season,
     clean_sheets_last_season,total_points_last_season,ict_index_last_season,red_cards_last_season,yellow_cards_last_season,
-    starts_last_season,saves_last_season,penalties_saved_last_season,penalties_missed_last_season) = [0]*14
-
-    if player_history.shape[0] >0:
-        if "2022/23" in player_history.season_name.values:
-            goals_scored_last_season = player_history[player_history.season_name == "2022/23"]['goals_scored'].iloc[0]
-            goals_conceded_last_season = player_history[player_history.season_name == "2022/23"]['goals_conceded'].iloc[0]
-            assists_last_season = player_history[player_history.season_name == "2022/23"]['assists'].iloc[0]
-            minutes_last_season = player_history[player_history.season_name == "2022/23"]['minutes'].iloc[0]
-            clean_sheets_last_season = player_history[player_history.season_name == "2022/23"]['clean_sheets'].iloc[0]
-            total_points_last_season = player_history[player_history.season_name == "2022/23"]['total_points'].iloc[0]
-            ict_index_last_season = player_history[player_history.season_name == "2022/23"]['ict_index'].iloc[0]
-            total_points_last_season = player_history[player_history.season_name == "2022/23"]['total_points'].iloc[0]
-            red_cards_last_season = player_history[player_history.season_name == "2022/23"]['clean_sheets'].iloc[0]
-            yellow_cards_last_season = player_history[player_history.season_name == "2022/23"]['yellow_cards'].iloc[0]
-            starts_last_season = player_history[player_history.season_name == "2022/23"]['starts'].iloc[0]
-            saves_last_season = player_history[player_history.season_name == "2022/23"]['saves'].iloc[0]
-            penalties_saved_last_season = player_history[player_history.season_name == "2022/23"]['penalties_saved'].iloc[0]
-            penalties_missed_last_season = player_history[player_history.season_name == "2022/23"]['penalties_missed'].iloc[0]
+    starts_last_season,saves_last_season,penalties_saved_last_season,penalties_missed_last_season) = handle_player_history(player_history)
         
-    
-    return (team_fixture_score_mean_10,team_fixture_score_sum_10,team_fixture_score_mean,team_fixture_score_sum,
-    goals_scored_last_season,goals_conceded_last_season,assists_last_season,minutes_last_season,clean_sheets_last_season,
-    clean_sheets_last_season,total_points_last_season,ict_index_last_season,red_cards_last_season,yellow_cards_last_season,
-    starts_last_season,saves_last_season,penalties_saved_last_season,penalties_missed_last_season)
+    return (average_points,average_minutes,avg_points_per_min,goals_scored_last_season,goals_conceded_last_season,
+    assists_last_season,minutes_last_season,clean_sheets_last_season,clean_sheets_last_season,total_points_last_season,
+    ict_index_last_season,red_cards_last_season,yellow_cards_last_season,starts_last_season,saves_last_season,
+    penalties_saved_last_season,penalties_missed_last_season)
 
 def get_fixtures()-> pd.DataFrame():
     """ Gets a list of all upcoming fixtures
@@ -171,10 +194,10 @@ def get_curated_player_data()-> pd.DataFrame():
     """
     df = clean_static_data(get_static_data())
     data = np.transpose(np.array(list(df.apply(lambda x: player_stats(x['id']),axis = 1 ))))
-    var_list = ['team_fixture_score_mean_10','team_fixture_score_sum_10','team_fixture_score_mean','team_fixture_score_sum',
-    'goals_scored_last_season','goals_conceded_last_season','assists_last_season','minutes_last_season','clean_sheets_last_season',
-    'clean_sheets_last_season','total_points_last_season','ict_index_last_season','red_cards_last_season','yellow_cards_last_season',
-    'starts_last_season','saves_last_season','penalties_saved_last_season','penalties_missed_last_season']
+    var_list = ['average_points','average_minutes','avg_points_per_min','goals_scored_last_season','goals_conceded_last_season',
+                'assists_last_season','minutes_last_season','clean_sheets_last_season','clean_sheets_last_season',
+                'total_points_last_season','ict_index_last_season','red_cards_last_season','yellow_cards_last_season',
+                'starts_last_season','saves_last_season','penalties_saved_last_season','penalties_missed_last_season']
     index = 0 
     for x in var_list:
         df[x] = data[index]
@@ -193,9 +216,8 @@ def pick_team(df,inlcude_player_ids)-> pd.DataFrame():
     df['chance_of_playing_next_round'] = df['chance_of_playing_next_round'].astype(int)
     df['total_points_last_season'] = df['total_points_last_season'].astype(int)
     df['ict_index_last_season'] = df['ict_index_last_season'].astype(float)
-    df['team_fixture_score_sum_10'] = df['team_fixture_score_sum_10'].astype(float)
-
-
+    df['assists_last_season'] = df['assists_last_season'].astype(float)
+    df['avg_points_per_min'] = df['avg_points_per_min'].astype(float).fillna(0)
 
 
     df = df[df.chance_of_playing_next_round == 100]
@@ -217,11 +239,9 @@ def pick_team(df,inlcude_player_ids)-> pd.DataFrame():
     selected = [LpVariable(f"player_{i}", cat='Binary') for i in range(len(df))]
 
     # Define the objective function (maximize total points)
-    prob += lpSum(selected[i] * df.loc[i, 'average_win_perc_first_10'] for i in df.index) + \
-            lpSum(selected[i] * df.loc[i, 'assists_last_season'] for i in df.index) + \
-            lpSum(selected[i] * df.loc[i, 'goals_scored_last_season'] for i in df.index)  + \
-            lpSum(selected[i] * df.loc[i, 'clean_sheets_last_season'] for i in df.index) - \
-            lpSum(selected[i] * df.loc[i, 'yellow_cards_last_season'] for i in df.index) 
+    prob += lpSum(selected[i] * df.loc[i, 'average_points'] for i in df.index) + \
+            lpSum(selected[i] * df.loc[i, 'total_points_last_season'] for i in range(len(df))) + \
+            lpSum(selected[i] * df.loc[i, 'form'] for i in range(len(df)))
     
     #lpSum(selected[i] * df.loc[i, 'total_points_last_season'] for i in range(len(df))) + \
     
@@ -254,3 +274,22 @@ def pick_team(df,inlcude_player_ids)-> pd.DataFrame():
 
 
     return pd.DataFrame(selected_players)
+
+def check_teams_performance(player_ids,gameweek_num:int)-> pd.DataFrame():
+    """ Checks how a team would have performed in a certain game week 
+
+    :param player_ids: a numpy array of player_ids
+    :param gameweek_num: an integer of what gameweek you would like to look at
+    returns a dictionary of player_ids mapped to points
+    """
+    points_map = {}
+    for player in player_ids:
+        gameweek = pd.DataFrame(get_player_data(player)['history'])
+        gameweek = gameweek[gameweek['round'] == gameweek_num]
+        if gameweek.shape[0] > 0:
+            points = gameweek['total_points'].iloc[0]
+        else:
+            points = 0 
+        
+        points_map[player] = points
+    return points_map
