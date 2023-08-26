@@ -209,6 +209,8 @@ def get_curated_player_data()-> pd.DataFrame():
     for x in var_list:
         df[x] = data[index]
         index = index + 1
+
+    df = apply_win_to_players(apply_win_perc(),df)
     return df
 
 
