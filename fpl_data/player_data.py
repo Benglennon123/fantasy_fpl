@@ -189,10 +189,6 @@ def apply_win_to_players(fixturesdf:pd.DataFrame(),playersdf:pd.DataFrame(),num_
     playersdf[f'average_win_perc_first_10'] = playersdf['team'].map(team_map)
     return playersdf
 
-        
-
-
-    
 
 def get_curated_player_data()-> pd.DataFrame():
     """ Gets the curated player data with extra Historical stats
